@@ -157,7 +157,8 @@ class EmailSenderApp:
             for index, row in df.iterrows():
                 try:
                     recipient_email = row['email_column']  # replace 'email_column' with the actual column name
-                    certificate_path = f"{certificates_folder}/{row['file_name']}"  # replace 'file_name' with the actual column name
+                    if certificates_folder:
+                        certificate_path = f"{certificates_folder}/{row['file_name']}"  # replace 'file_name' with the actual column name
                     # print(f"{index}: Sending email to {recipient_email}, the certificate path is: {certificate_path}")
 
                     # Create message
@@ -175,11 +176,14 @@ class EmailSenderApp:
                     formatted_body = email_body.replace('{name}', f'<b>{row["name_column"]}</b>')
                     msg.attach(MIMEText(formatted_body, 'html'))
 
-                    # Attach certificate
-                    with open(certificate_path, "rb") as file:
-                        attachment = MIMEApplication(file.read(), _subtype="pdf")
-                        attachment.add_header('Content-Disposition', f'attachment; filename={row["file_name"]}')
-                        msg.attach(attachment)
+                    # Attach certificate if certificates folder is provided
+                    if certificates_folder and os.path.exists(certificate_path):
+                        # Attach certificate
+                        with open(certificate_path, "rb") as file:
+                            attachment = MIMEApplication(file.read(), _subtype="pdf")
+                            attachment.add_header('Content-Disposition', f'attachment; filename={row["file_name"]}')
+                            msg.attach(attachment)
+                    
 
                     # Send email
                     recipients= [recipient_email] + bcc_emails
